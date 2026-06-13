@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Rajnandini — Image Link Checker</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --maroon: #6B1B2E;
+      --gold:   #C9963A;
+      --blush:  #F5E6EA;
+      --offwhite: #FDF8F5;
+      --border: #E8D5DA;
+      --ink:    #1E1212;
+      --muted:  #8A7070;
+      --green:  #2E7D51;
+      --red:    #b52b2b;
+      --orange: #B85C00;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'DM Sans', sans-serif; background: var(--offwhite); color: var(--ink); min-height: 100vh; }
+
+    header {
+      background: var(--maroon);
+      padding: 16px 28px;
+      display: flex; align-items: center; gap: 14px;
+    }
+    .logo-name { font-size: 1.3rem; font-weight: 600; color: #fff; }
+    .logo-sub  { font-size: 0.65rem; color: var(--gold); letter-spacing: 0.18em; text-transform: uppercase; }
+    .hd { width:1px; height:36px; background: rgba(255,255,255,0.2); margin: 0 10px; }
+    .header-title { font-size: 0.8rem; color: rgba(255,255,255,0.75); text-transform: uppercase; letter-spacing: 0.06em; }
+
+    .hero {
+      background: linear-gradient(135deg, var(--blush), #fff);
+      border-bottom: 1px solid var(--border);
+      padding: 32px 28px 28px;
+      text-align: center;
+    }
+    .hero h1 { font-size: 1.4rem; font-weight: 600; color: var(--maroon); margin-bottom: 6px; }
+    .hero p  { font-size: 0.85rem; color: var(--muted); margin-bottom: 24px; }
+
+    .btn {
+      background: var(--maroon);
+      color: #fff;
+      border: none;
+      padding: 13px 32px;
+      font-size: 0.95rem;
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 500;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.18s;
+    }
+    .btn:hover { background: #8a223b; }
+    .btn:disabled { background: #c08090; cursor: not-allowed; }
+
+    /* PROGRESS */
+    #progress-wrap {
+      max-width: 600px;
+      margin: 24px auto 0;
+      display: none;
+    }
+    .prog-bar-bg {
+      background: var(--border);
+      border-radius: 8px;
+      height: 10px;
+      overflow: hidden;
+      margin-bottom: 10px;
+    }
+    .prog-bar-fill {
+      height: 100%;
+      background: var(--maroon);
+      border-radius: 8px;
+      transition: width 0.2s;
+      width: 0%;
+    }
+    .prog-text { font-size: 0.82rem; color: var(--muted); text-align: center; }
+
+    /* SUMMARY CARDS */
+    #summary {
+      max-width: 860px;
+      margin: 28px auto 0;
+      padding: 0 20px;
+      display: none;
+    }
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+    .sum-card {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 18px 20px;
+      text-align: center;
+    }
+    .sum-card .num { font-size: 2rem; font-weight: 700; }
+    .sum-card .lbl { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; margin-top: 4px; }
+    .sum-card.total .num { color: var(--maroon); }
+    .sum-card.ok    .num { color: var(--green); }
+    .sum-card.bad   .num { color: var(--red); }
+
+    /* TABS */
+    .tabs { display: flex; gap: 8px; margin-bottom: 16px; }
+    .tab {
+      padding: 8px 18px;
+      border-radius: 20px;
+      font-size: 0.82rem;
+      font-weight: 500;
+      cursor: pointer;
+      border: 1.5px solid var(--border);
+      background: #fff;
+      color: var(--muted);
+      transition: all 0.15s;
+    }
+    .tab.active { background: var(--maroon); color: #fff; border-color: var(--maroon); }
+
+    /* DOWNLOAD */
+    .dl-btn {
+      margin-left: auto;
+      background: var(--gold);
+      color: #fff;
+      border: none;
+      padding: 8px 18px;
+      border-radius: 20px;
+      font-size: 0.82rem;
+      font-weight: 500;
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+    }
+    .dl-btn:hover { background: #a87d28; }
+
+    /* TABLE */
+    .table-wrap {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      margin-bottom: 40px;
+    }
+    table { width: 100%; border-collapse: collapse; }
+    thead tr { background: var(--blush); }
+    thead th {
+      text-align: left;
+      padding: 11px 14px;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+      font-weight: 600;
+    }
+    tbody tr { border-top: 1px solid var(--blush); }
+    tbody tr:hover { background: #fdf3f5; }
+    tbody td { padding: 10px 14px; font-size: 0.85rem; vertical-align: middle; }
+    .td-sku { font-weight: 600; color: var(--maroon); }
+    .td-url { color: #555; font-size: 0.78rem; max-width: 340px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .chip {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 10px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    .chip.ok      { background: #E6F4ED; color: var(--green); }
+    .chip.broken  { background: #FDECEA; color: var(--red); }
+    .chip.cors    { background: #FFF3E0; color: var(--orange); }
+
+    .thumb { width: 36px; height: 36px; object-fit: cover; border-radius: 4px; border: 1px solid var(--border); }
+    .thumb-broken { width: 36px; height: 36px; background: var(--blush); border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 0.65rem; color: var(--red); border: 1px solid #f5c0c0; }
+
+    @media(max-width:600px) {
+      .summary-grid { grid-template-columns: 1fr 1fr; }
+      .td-url { max-width: 140px; }
+      .tabs { flex-wrap: wrap; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="logo-name">Rajnandini</div>
+    <div class="logo-sub">Women's Ethnic Wear</div>
+  </div>
+  <div class="hd"></div>
+  <span class="header-title">Image Link Checker</span>
+</header>
+
+<div class="hero">
+  <h1>Check All Image Links</h1>
+  <p>Scans your entire image sheet and finds which links are working and which are broken.</p>
+  <button class="btn" id="startBtn" onclick="startCheck()">Start Scanning</button>
+  <div id="progress-wrap">
+    <div class="prog-bar-bg"><div class="prog-bar-fill" id="progFill"></div></div>
+    <div class="prog-text" id="progText">Preparing…</div>
+  </div>
+</div>
+
+<div id="summary">
+  <div class="summary-grid">
+    <div class="sum-card total"><div class="num" id="cTotal">0</div><div class="lbl">Total SKUs</div></div>
+    <div class="sum-card ok">  <div class="num" id="cOk">0</div>   <div class="lbl">✓ Working</div></div>
+    <div class="sum-card bad"> <div class="num" id="cBad">0</div>  <div class="lbl">✗ Broken</div></div>
+  </div>
+
+  <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;flex-wrap:wrap;">
+    <div class="tabs">
+      <div class="tab active" onclick="showTab('all')">All</div>
+      <div class="tab" onclick="showTab('ok')">Working</div>
+      <div class="tab" onclick="showTab('broken')">Broken</div>
+      <div class="tab" onclick="showTab('cors')">CORS / Unknown</div>
+    </div>
+    <button class="dl-btn" onclick="downloadCSV()">⬇ Download Broken List (CSV)</button>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Preview</th>
+          <th>SKU</th>
+          <th>URL</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+  const IMAGE_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQMYiDx_noTYEQffm5508rXIcFyuHSecEKRlpVXGYIhmYWhWZgSRXsHLoOQTeuy7PG8D-7RF8Op-0Uq/pub?output=csv';
+
+  let results = [];
+  let currentTab = 'all';
+
+  function parseCSV(text) {
+    return text.trim().split('\n').map(row => {
+      const cols = []; let cur = '', inQ = false;
+      for (let i = 0; i < row.length; i++) {
+        const c = row[i];
+        if (c === '"') { inQ = !inQ; }
+        else if (c === ',' && !inQ) { cols.push(cur.trim()); cur = ''; }
+        else { cur += c; }
+      }
+      cols.push(cur.trim());
+      return cols;
+    });
+  }
+
+  // Fix Dropbox URLs: dl=0 → dl=1 and remove www for direct access
+  function fixDropbox(url) {
+    if (url.includes('dropbox.com')) {
+      return url.replace('www.dropbox.com', 'dl.dropboxusercontent.com')
+                .replace('?dl=0', '?dl=1')
+                .replace('&dl=0', '&dl=1');
+    }
+    return url;
+  }
+
+  async function checkURL(url) {
+    const fixed = fixDropbox(url);
+    return new Promise(resolve => {
+      const img = new Image();
+      const timer = setTimeout(() => {
+        img.src = '';
+        resolve({ status: 'broken', fixed });
+      }, 8000);
+      img.onload = () => {
+        clearTimeout(timer);
+        resolve({ status: 'ok', fixed });
+      };
+      img.onerror = () => {
+        clearTimeout(timer);
+        // Could be CORS or truly broken — mark as broken
+        resolve({ status: 'broken', fixed });
+      };
+      img.src = fixed;
+    });
+  }
+
+  async function startCheck() {
+    const btn = document.getElementById('startBtn');
+    btn.disabled = true;
+    btn.textContent = 'Scanning…';
+    document.getElementById('progress-wrap').style.display = 'block';
+    document.getElementById('summary').style.display = 'none';
+    results = [];
+
+    // Fetch CSV
+    document.getElementById('progText').textContent = 'Fetching image sheet…';
+    let rows;
+    try {
+      const res = await fetch(IMAGE_URL);
+      const text = await res.text();
+      rows = parseCSV(text).slice(1).filter(r => r[0] && r[1]);
+    } catch(e) {
+      document.getElementById('progText').textContent = 'Failed to fetch sheet. Check connection.';
+      btn.disabled = false; btn.textContent = 'Retry';
+      return;
+    }
+
+    const total = rows.length;
+    document.getElementById('cTotal').textContent = total;
+
+    // Check in batches of 10 concurrently
+    const BATCH = 10;
+    for (let i = 0; i < rows.length; i += BATCH) {
+      const batch = rows.slice(i, i + BATCH);
+      const checks = batch.map(async r => {
+        const sku = (r[0] || '').trim().toUpperCase();
+        const url = (r[1] || '').trim();
+        const { status, fixed } = await checkURL(url);
+        return { sku, url, fixedUrl: fixed, status };
+      });
+      const batchResults = await Promise.all(checks);
+      results.push(...batchResults);
+
+      // Update progress
+      const done = Math.min(i + BATCH, total);
+      const pct = Math.round((done / total) * 100);
+      document.getElementById('progFill').style.width = pct + '%';
+      const okCount  = results.filter(r => r.status === 'ok').length;
+      const badCount = results.filter(r => r.status === 'broken').length;
+      document.getElementById('progText').textContent =
+        `Checked ${done} / ${total} — ✓ ${okCount} working, ✗ ${badCount} broken`;
+      document.getElementById('cOk').textContent  = okCount;
+      document.getElementById('cBad').textContent = badCount;
+      document.getElementById('summary').style.display = 'block';
+      renderTable();
+    }
+
+    document.getElementById('progText').textContent = `✅ Done! Checked all ${total} SKUs.`;
+    btn.disabled = false;
+    btn.textContent = 'Re-Scan';
+    renderTable();
+  }
+
+  function showTab(tab) {
+    currentTab = tab;
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    event.target.classList.add('active');
+    renderTable();
+  }
+
+  function renderTable() {
+    let data = results;
+    if (currentTab === 'ok')     data = results.filter(r => r.status === 'ok');
+    if (currentTab === 'broken') data = results.filter(r => r.status === 'broken');
+    if (currentTab === 'cors')   data = results.filter(r => r.status === 'cors');
+
+    const tbody = document.getElementById('tableBody');
+    tbody.innerHTML = data.map(r => {
+      const thumbHtml = r.status === 'ok'
+        ? `<img class="thumb" src="${r.fixedUrl}" alt="${r.sku}" onerror="this.outerHTML='<div class=\\'thumb-broken\\'>ERR</div>'">`
+        : `<div class="thumb-broken">✗</div>`;
+
+      const chipClass = r.status === 'ok' ? 'ok' : r.status === 'cors' ? 'cors' : 'broken';
+      const chipText  = r.status === 'ok' ? '✓ Working' : r.status === 'cors' ? '⚠ CORS' : '✗ Broken';
+
+      const shortUrl = r.url.length > 60 ? r.url.slice(0, 57) + '…' : r.url;
+
+      return `<tr>
+        <td>${thumbHtml}</td>
+        <td class="td-sku">${r.sku}</td>
+        <td class="td-url" title="${r.url}"><a href="${r.url}" target="_blank" style="color:#555;text-decoration:none">${shortUrl}</a></td>
+        <td><span class="chip ${chipClass}">${chipText}</span></td>
+      </tr>`;
+    }).join('');
+  }
+
+  function downloadCSV() {
+    const broken = results.filter(r => r.status !== 'ok');
+    if (!broken.length) { alert('No broken links found!'); return; }
+    const lines = ['SKU,Original URL,Status'];
+    broken.forEach(r => lines.push(`"${r.sku}","${r.url}","${r.status}"`));
+    const blob = new Blob([lines.join('\n')], { type: 'text/csv' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'broken-image-links.csv';
+    a.click();
+  }
+</script>
+</body>
+</html>
