@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Rajnandini — Stock Finder</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --maroon:   #6B1B2E;
+      --rose:     #C2556A;
+      --blush:    #F5E6EA;
+      --gold:     #C9963A;
+      --offwhite: #FDF8F5;
+      --ink:      #1E1212;
+      --muted:    #8A7070;
+      --border:   #E8D5DA;
+      --success:  #2E7D51;
+      --warn:     #B85C00;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--offwhite);
+      color: var(--ink);
+      min-height: 100vh;
+    }
+
+    /* ── HEADER ── */
+    header {
+      background: var(--maroon);
+      padding: 18px 28px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .logo-block { display: flex; flex-direction: column; }
+    .logo-name {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.55rem;
+      font-weight: 600;
+      color: #fff;
+      letter-spacing: 0.04em;
+    }
+    .logo-sub {
+      font-size: 0.68rem;
+      color: var(--gold);
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      margin-top: 1px;
+    }
+    .header-divider {
+      width: 1px; height: 40px;
+      background: rgba(255,255,255,0.25);
+      margin: 0 10px;
+    }
+    .header-title {
+      font-size: 0.82rem;
+      color: rgba(255,255,255,0.75);
+      font-weight: 400;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    /* ── SEARCH HERO ── */
+    .hero {
+      background: linear-gradient(135deg, var(--blush) 0%, #fff 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 36px 28px 28px;
+      text-align: center;
+    }
+    .hero h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.6rem;
+      color: var(--maroon);
+      margin-bottom: 6px;
+    }
+    .hero p { font-size: 0.85rem; color: var(--muted); margin-bottom: 22px; }
+
+    .search-wrap {
+      display: flex;
+      max-width: 520px;
+      margin: 0 auto;
+      border: 2px solid var(--maroon);
+      border-radius: 8px;
+      overflow: hidden;
+      background: #fff;
+      box-shadow: 0 4px 20px rgba(107,27,46,0.10);
+    }
+    .search-wrap input {
+      flex: 1;
+      border: none;
+      outline: none;
+      padding: 14px 18px;
+      font-size: 1rem;
+      font-family: 'DM Sans', sans-serif;
+      color: var(--ink);
+      background: transparent;
+    }
+    .search-wrap input::placeholder { color: #bba8ac; }
+    .search-wrap button {
+      background: var(--maroon);
+      border: none;
+      color: #fff;
+      padding: 0 24px;
+      font-size: 0.88rem;
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 500;
+      cursor: pointer;
+      letter-spacing: 0.04em;
+      transition: background 0.18s;
+    }
+    .search-wrap button:hover { background: #8a223b; }
+
+    /* ── STATUS BANNER ── */
+    #status {
+      max-width: 720px;
+      margin: 18px auto 0;
+      padding: 10px 16px;
+      border-radius: 6px;
+      font-size: 0.82rem;
+      display: none;
+      text-align: center;
+    }
+    #status.loading { background: #FFF8E7; color: var(--warn); display: block; }
+    #status.error   { background: #FEE8E8; color: #b52b2b; display: block; }
+
+    /* ── RESULTS ── */
+    #results {
+      max-width: 860px;
+      margin: 30px auto 60px;
+      padding: 0 20px;
+    }
+
+    .result-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .sku-badge {
+      background: var(--maroon);
+      color: #fff;
+      font-size: 0.78rem;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      padding: 4px 12px;
+      border-radius: 20px;
+      text-transform: uppercase;
+    }
+    .result-label {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    /* ── PRODUCT CARD ── */
+    .product-card {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      box-shadow: 0 2px 12px rgba(107,27,46,0.06);
+    }
+
+    .product-image {
+      background: var(--blush);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 240px;
+      position: relative;
+      overflow: hidden;
+    }
+    .product-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .no-image {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      color: var(--rose);
+    }
+    .no-image svg { opacity: 0.35; }
+    .no-image span { font-size: 0.72rem; color: var(--muted); }
+
+    .product-info {
+      padding: 24px 28px;
+    }
+    .product-sku {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.35rem;
+      color: var(--maroon);
+      margin-bottom: 4px;
+    }
+    .product-divider {
+      width: 36px; height: 2px;
+      background: var(--gold);
+      border-radius: 2px;
+      margin: 10px 0 18px;
+    }
+
+    .bins-section-label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--muted);
+      margin-bottom: 10px;
+    }
+    .bin-rows { display: flex; flex-direction: column; gap: 8px; }
+    .bin-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: var(--blush);
+      border-radius: 7px;
+      padding: 10px 14px;
+    }
+    .bin-name {
+      font-weight: 500;
+      font-size: 0.92rem;
+      color: var(--ink);
+      min-width: 90px;
+    }
+    .bin-sep { color: var(--border); }
+    .stock-chip {
+      font-size: 0.78rem;
+      font-weight: 500;
+      padding: 3px 10px;
+      border-radius: 12px;
+    }
+    .stock-chip.in  { background: #E6F4ED; color: var(--success); }
+    .stock-chip.low { background: #FFF3E0; color: var(--warn); }
+    .stock-chip.out { background: #FDECEA; color: #b52b2b; }
+
+    .total-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 18px;
+      padding-top: 14px;
+      border-top: 1px solid var(--border);
+    }
+    .total-label { font-size: 0.8rem; color: var(--muted); }
+    .total-value {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.4rem;
+      color: var(--maroon);
+      font-weight: 600;
+    }
+    .total-unit { font-size: 0.7rem; color: var(--muted); margin-left: 4px; }
+
+    /* ── NOT FOUND ── */
+    .not-found {
+      text-align: center;
+      padding: 50px 20px;
+    }
+    .not-found svg { opacity: 0.15; margin-bottom: 16px; }
+    .not-found h3 { font-family: 'Playfair Display', serif; color: var(--maroon); margin-bottom: 6px; }
+    .not-found p { font-size: 0.85rem; color: var(--muted); }
+
+    /* ── EMPTY STATE ── */
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--muted);
+    }
+    .empty-state svg { opacity: 0.12; margin-bottom: 16px; }
+    .empty-state p { font-size: 0.9rem; }
+
+    /* ── FOOTER ── */
+    footer {
+      text-align: center;
+      padding: 16px;
+      font-size: 0.72rem;
+      color: var(--muted);
+      border-top: 1px solid var(--border);
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 600px) {
+      .product-card { grid-template-columns: 1fr; }
+      .product-image { min-height: 200px; }
+      header { flex-wrap: wrap; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo-block">
+    <span class="logo-name">Rajnandini</span>
+    <span class="logo-sub">Women's Ethnic Wear</span>
+  </div>
+  <div class="header-divider"></div>
+  <span class="header-title">Warehouse Stock Finder</span>
+</header>
+
+<div class="hero">
+  <h1>Find Stock by SKU</h1>
+  <p>Enter a SKU code to see bin locations, quantities, and product image.</p>
+  <div class="search-wrap">
+    <input type="text" id="skuInput" placeholder="e.g. RNF-1042" autocomplete="off" />
+    <button onclick="searchSKU()">Search</button>
+  </div>
+  <div id="status"></div>
+</div>
+
+<div id="results">
+  <div class="empty-state">
+    <svg width="64" height="64" fill="none" viewBox="0 0 64 64"><circle cx="28" cy="28" r="18" stroke="#6B1B2E" stroke-width="3"/><line x1="41" y1="41" x2="56" y2="56" stroke="#6B1B2E" stroke-width="3" stroke-linecap="round"/></svg>
+    <p>Type a SKU above and hit Search.</p>
+  </div>
+</div>
+
+<footer>Rajnandini Fashion &nbsp;·&nbsp; Internal Warehouse Tool</footer>
+
+<script>
+  const STOCK_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQxQ6tho5vRnTD1w94B0xAu3wzj8MTL0iWqyppyxEHsPy_u1lVeIXi5K_Y0xMNu1dL-kOcP9JIFx1pR/pub?output=csv';
+  const IMAGE_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQMYiDx_noTYEQffm5508rXIcFyuHSecEKRlpVXGYIhmYWhWZgSRXsHLoOQTeuy7PG8D-7RF8Op-0Uq/pub?output=csv';
+
+  let stockData = null;
+  let imageData = null;
+  let dataLoaded = false;
+
+  function setStatus(msg, type) {
+    const el = document.getElementById('status');
+    el.textContent = msg;
+    el.className = type || '';
+    if (!type) el.style.display = 'none';
+  }
+
+  function parseCSV(text) {
+    return text.trim().split('\n').map(row => {
+      const cols = [];
+      let cur = '', inQ = false;
+      for (let i = 0; i < row.length; i++) {
+        const c = row[i];
+        if (c === '"') { inQ = !inQ; }
+        else if (c === ',' && !inQ) { cols.push(cur.trim()); cur = ''; }
+        else { cur += c; }
+      }
+      cols.push(cur.trim());
+      return cols;
+    });
+  }
+
+  async function loadData() {
+    setStatus('Loading data…', 'loading');
+    try {
+      const [sRes, iRes] = await Promise.all([
+        fetch(STOCK_URL),
+        fetch(IMAGE_URL)
+      ]);
+      const [sText, iText] = await Promise.all([sRes.text(), iRes.text()]);
+
+      const sRows = parseCSV(sText).slice(1); // skip header
+      const iRows = parseCSV(iText).slice(1);
+
+      stockData = {};
+      sRows.forEach(r => {
+        const sku = (r[0] || '').trim().toUpperCase();
+        const bin = (r[1] || '').trim();
+        const qty = parseInt(r[2]) || 0;
+        if (!sku) return;
+        if (!stockData[sku]) stockData[sku] = [];
+        stockData[sku].push({ bin, qty });
+      });
+
+      imageData = {};
+      iRows.forEach(r => {
+        const sku = (r[0] || '').trim().toUpperCase();
+        const url = (r[1] || '').trim();
+        if (sku) imageData[sku] = url;
+      });
+
+      dataLoaded = true;
+      setStatus('');
+    } catch(e) {
+      setStatus('Failed to load data. Check your connection.', 'error');
+      throw e;
+    }
+  }
+
+  function stockClass(qty) {
+    if (qty <= 0) return 'out';
+    if (qty <= 5) return 'low';
+    return 'in';
+  }
+  function stockLabel(qty) {
+    if (qty <= 0) return 'Out of Stock';
+    if (qty <= 5) return 'Low Stock';
+    return 'In Stock';
+  }
+
+  function renderNotFound(sku) {
+    return `<div class="not-found">
+      <svg width="64" height="64" fill="none" viewBox="0 0 64 64"><circle cx="28" cy="28" r="18" stroke="#6B1B2E" stroke-width="3"/><line x1="41" y1="41" x2="56" y2="56" stroke="#6B1B2E" stroke-width="3" stroke-linecap="round"/><line x1="22" y1="28" x2="34" y2="28" stroke="#6B1B2E" stroke-width="3" stroke-linecap="round"/></svg>
+      <h3>SKU Not Found</h3>
+      <p>"${sku}" doesn't exist in the stock sheet. Check the code and try again.</p>
+    </div>`;
+  }
+
+  function renderResult(sku, bins, imgUrl) {
+    const total = bins.reduce((s, b) => s + b.qty, 0);
+
+    const imgHtml = imgUrl
+      ? `<img src="${imgUrl}" alt="${sku}" onerror="this.parentElement.innerHTML='<div class=\\'no-image\\'><svg width=\\'48\\' height=\\'48\\' fill=\\'none\\' viewBox=\\'0 0 48 48\\'><rect x=\\'4\\' y=\\'4\\' width=\\'40\\' height=\\'40\\' rx=\\'6\\' stroke=\\'#C2556A\\' stroke-width=\\'2\\'/><path d=\\'M4 34l12-10 8 7 6-5 14 12\\' stroke=\\'#C2556A\\' stroke-width=\\'2\\'/><circle cx=\\'16\\' cy=\\'17\\' r=\\'4\\' stroke=\\'#C2556A\\' stroke-width=\\'2\\'/></svg><span>Image unavailable</span></div>'"/>`
+      : `<div class="no-image"><svg width="48" height="48" fill="none" viewBox="0 0 48 48"><rect x="4" y="4" width="40" height="40" rx="6" stroke="#C2556A" stroke-width="2"/><path d="M4 34l12-10 8 7 6-5 14 12" stroke="#C2556A" stroke-width="2"/><circle cx="16" cy="17" r="4" stroke="#C2556A" stroke-width="2"/></svg><span>No image linked</span></div>`;
+
+    const binRowsHtml = bins.map(b => `
+      <div class="bin-row">
+        <span class="bin-name">${b.bin || '—'}</span>
+        <span class="bin-sep">·</span>
+        <span>${b.qty} pcs</span>
+        <span class="stock-chip ${stockClass(b.qty)}">${stockLabel(b.qty)}</span>
+      </div>`).join('');
+
+    return `
+      <div class="result-header">
+        <span class="sku-badge">${sku}</span>
+        <span class="result-label">${bins.length} bin${bins.length !== 1 ? 's' : ''} found</span>
+      </div>
+      <div class="product-card">
+        <div class="product-image">${imgHtml}</div>
+        <div class="product-info">
+          <div class="product-sku">${sku}</div>
+          <div class="product-divider"></div>
+          <div class="bins-section-label">Bin Locations &amp; Stock</div>
+          <div class="bin-rows">${binRowsHtml}</div>
+          <div class="total-row">
+            <span class="total-label">Total Stock</span>
+            <span class="total-value">${total}<span class="total-unit">pcs</span></span>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  async function searchSKU() {
+    const raw = document.getElementById('skuInput').value.trim();
+    if (!raw) return;
+    const sku = raw.toUpperCase();
+
+    if (!dataLoaded) {
+      await loadData();
+    }
+
+    const bins = stockData[sku];
+    const imgUrl = imageData[sku] || '';
+
+    const resultsEl = document.getElementById('results');
+    if (!bins || bins.length === 0) {
+      resultsEl.innerHTML = renderNotFound(sku);
+    } else {
+      resultsEl.innerHTML = renderResult(sku, bins, imgUrl);
+    }
+  }
+
+  document.getElementById('skuInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') searchSKU();
+  });
+
+  // Preload data in background
+  loadData().catch(() => {});
+</script>
+</body>
+</html>
